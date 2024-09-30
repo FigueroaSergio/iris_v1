@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Eye Detection and Cropping (Client-side)</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 50px;
+      }
+      .container {
+        text-align: center;
+      }
+      canvas {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Eye Detection and Cropping</h1>
+      <div id="status"></div>
+      <h3 id="status-prediction">Prediction: -</h3>
+      <div>Near to -1 no diabetes near to 1 diabete</div>
+      <br />
+      <br />
+
+      <input type="file" id="imageInput" accept="image/*" />
+      <button onclick="detectAndCropEye()">Detect and Crop Eye</button>
+      <h2>Uploaded Image</h2>
+      <canvas id="canvasInput"></canvas>
+      <br />
+      <h2>Cropped Eye</h2>
+      <canvas id="canvasOutput"></canvas>
+    </div>
+
+    <!-- Load OpenCV.js -->
+    <script
+      async
+      src="https://docs.opencv.org/4.10.0/opencv.js"
+      onload="onOpenCvReady();"
+    ></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script>
+      let src, gray, eyeCascade, faceCascade, model;
+      let canvasInput = document.getElementById("canvasInput");
+      let canvasOutput = document.getElementById("canvasOutput");
+      let prediction = document.getElementById("status-prediction");
+      let ctxInput = canvasInput.getContext("2d");
+      let ctxOutput = canvasOutput.getContext("2d");
+      let loadModel = async () => {
+        // let folder ="model/model.json"
+        // let folder = "h5_model/model.json";
+        // let folder = "keras_model/model.json";
+        let folder = "result/model.json";
+
+        model = await tf.loadGraphModel(folder);
+      };
+      async function rescaleImage(imageElement, targetSize) {
+        const imageTensor = await tf.decodeImage(imageElement);
+        const resizedTensor = imageTensor.resizeBilinear(targetSize);
+        const rescaledTensor = resizedTensor.div(tf.scalar(255));
+        return rescaledTensor;
+      }
+      async function processImages(imagePaths) {
+        const processedImages = [];
+        for (const imagePath of imagePaths) {
+          const imageElement = new Image();
+          imageElement.src = imagePath;
+          await imageElement.decode();
+
+          const rescaledTensor = await rescaleImage(imageElement, [300, 300]);
+          processedImages.push(rescaledTensor);
+        }
+        return processedImages;
+      }
+      async function rescaleCanvasImage(canvas, targetSize) {
+        // Get the canvas context
+        const ctx = canvas.getContext("2d");
+
+        // Create a new image element
+        const image = new Image();
+        image.src = canvas.toDataURL();
+
+        // Wait for the image to load
+        await new Promise((resolve) => {
+          image.onload = resolve;
+        });
+
+        // Decode the image into a TensorFlow tensor
+        const imageTensor = await tf.browser.fromPixels(image);
+
+        // Resize the tensor
+        const resizedTensor = tf.image.resizeBilinear(imageTensor, targetSize);
+
+        // Normalize the pixel values
+        const rescaledTensor = resizedTensor.div(tf.scalar(255)).expandDims();
+
+        return rescaledTensor;
+      }
+
+      loadModel();
+
+      // Load Haar Cascade for eye detection (pre-trained XML file)
+      function onOpenCvReady() {
+        cv["onRuntimeInitialized"] = () => {
+          document.getElementById("status").innerHTML = "OpenCV.js is ready.";
+          eyeCascade = new cv.CascadeClassifier();
+          createFileFromUrl(
+            "haarcascade_eye.xml",
+            "haarcascade_eye.xml",
+            () => {
+              eyeCascade.load("haarcascade_eye.xml");
+            }
+          ); // Load pre-trained eye model
+          // faceCascade = new cv.CascadeClassifier();
+          // faceCascade.load("haarcascade_frontalface_default.xml");
+        };
+      }
+      createFileFromUrl = function (path, url, callback) {
+        let request = new XMLHttpRequest();
+        request.open("GET", url, true);
+        request.responseType = "arraybuffer";
+        request.onload = function (ev) {
+          if (request.readyState === 4) {
+            if (request.status === 200) {
+              let data = new Uint8Array(request.response);
+              cv.FS_createDataFile("/", path, data, true, false, false);
+              callback();
+            } else {
+              self.printError(
+                "Failed to load " + url + " status: " + request.status
+              );
+            }
+          }
+        };
+        request.send();
+      };
+
+      // Load the uploaded image into the canvas
+      document
+        .getElementById("imageInput")
+        .addEventListener("change", function (e) {
+          const reader = new FileReader();
+          reader.onload = function (event) {
+            const img = new Image();
+            img.onload = function () {
+              canvasInput.width = img.width;
+              canvasInput.height = img.height;
+              ctxInput.drawImage(img, 0, 0, img.width, img.height);
+
+              // Create OpenCV matrix from the canvas
+              console.log("load matrix");
+
+              src = cv.imread("canvasInput");
+              console.log("gray matrix");
+
+              gray = new cv.Mat();
+              console.log("to b&w");
+
+              cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY, 0);
+            };
+            img.src = event.target.result;
+          };
+          reader.readAsDataURL(e.target.files[0]);
+        });
+
+      // Function to detect and crop eye
+      function detectAndCropEye() {
+        if (!eyeCascade) {
+          alert("OpenCV.js or the eye cascade is not loaded yet!");
+          return;
+        }
+        // let faces = new cv.RectVector();
+
+        let eyes = new cv.RectVector();
+        let msize = new cv.Size(120, 120); // Minimum size of detected eyes
+        console.log("Try read image");
+
+        // Detect eyes in the image
+        eyeCascade.detectMultiScale(gray, eyes, 1.1, 3, 0, msize);
+
+        console.log("Read");
+        if (eyes.size() > 0) {
+          // Crop the first detected eye
+          let eye = eyes.get(0);
+          let croppedEye = src.roi(eye);
+
+          // Display the cropped eye in the output canvas
+          canvasOutput.width = eye.width;
+          canvasOutput.height = eye.height;
+          cv.imshow(canvasOutput, croppedEye);
+          rescaleCanvasImage(canvasInput, [300, 300]).then((tt) => {
+            console.log(tt);
+
+            if (model) {
+              console.log(model);
+
+              const tensor = model.predict(tt);
+              const value = tensor.dataSync();
+              prediction.innerHTML = `Prediction: ${value[0]}`;
+            }
+          });
+
+          // Cleanup
+          croppedEye.delete();
+          eyes.delete();
+        } else {
+          alert("No eyes detected!");
+        }
+      }
+    </script>
+  </body>
+</html>
