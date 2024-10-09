@@ -1,0 +1,8 @@
+tensorflow
+pandas
+openpyxl
+scikit-learn
+pillow
+pyyaml 
+h5py
+tensorflowjs
