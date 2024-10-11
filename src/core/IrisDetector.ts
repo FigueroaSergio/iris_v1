@@ -1,17 +1,16 @@
 import cv from "@techstark/opencv-js";
 import { IrisExtractor, ModelLoadError } from "./model/IrisModel";
 import { loadCascade } from "./utils/loadCascade";
-import { canvas2Image, createCanvas } from "./utils/Canvas";
+import { canvas2Image, createCanvas } from "./utils/canvas";
 
 export class IrisDetector implements IrisExtractor {
   model: cv.CascadeClassifier | null = null;
   cascade = "haarcascade_eye.xml";
 
   async load() {
-    loadCascade(this.cascade, this.cascade, () => {
-      this.model = new cv.CascadeClassifier();
-      this.model.load(this.cascade);
-    });
+    await loadCascade(this.cascade, this.cascade);
+    this.model = new cv.CascadeClassifier();
+    this.model.load(this.cascade);
   }
   onReady(cb: () => void): void {
     cb();

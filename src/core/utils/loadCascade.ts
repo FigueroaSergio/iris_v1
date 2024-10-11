@@ -1,10 +1,6 @@
 import cv from "@techstark/opencv-js";
 
-export async function loadCascade(
-  cvFilePath: string,
-  url: string,
-  callback: () => void
-) {
+export async function loadCascade(cvFilePath: string, url: string) {
   return fetch(url)
     .then(
       (response) => response.arrayBuffer() // Similar to responseType 'arraybuffer'
@@ -13,6 +9,6 @@ export async function loadCascade(
       const data = new Uint8Array(arrayBuffer);
 
       cv.FS_createDataFile("/", cvFilePath, data, true, false, false);
-      callback(); // Call the callback after the data is processed
+      return Promise.resolve();
     });
 }

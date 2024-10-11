@@ -1,9 +1,9 @@
 import { GraphModel, loadGraphModel, Rank, Tensor } from "@tensorflow/tfjs";
 import { IrisModel, ModelLoadError } from "./model/IrisModel";
 import { rescaleCanvasImage } from "./utils/imageTensor";
-import { image2Canvas } from "./utils/Canvas";
+import { image2Canvas } from "./utils/canvas";
 
-export class DiabeteClassfier implements IrisModel {
+export class DiabeteClassifier implements IrisModel {
   model: GraphModel | null = null;
   async load(): Promise<void> {
     this.model = await loadGraphModel("./../../public/result/model.json");

@@ -1,4 +1,4 @@
-import { ChangeEvent, Fragment, useEffect, useState } from "react";
+import { ChangeEvent, Fragment, useCallback, useEffect, useState } from "react";
 
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
@@ -6,33 +6,48 @@ import "./App.css";
 import { IrisDetector } from "./core/IrisDetector";
 import { useOpenCv } from "./core/hooks/useOpenCv";
 import { loadImageFile } from "./core/utils/loadImage";
-import { DiabeteClassfier } from "./core/DiabeteClassifier";
+import { DiabeteClassifier } from "./core/DiabeteClassifier";
+import { useAsync } from "./core/hooks/useAsync";
 
 function App() {
   const [eyeDetector] = useState(new IrisDetector());
-  const [diabeteClassfier] = useState(new DiabeteClassfier());
+  const [diabeteClassifier] = useState(new DiabeteClassifier());
   const [images, setImages] = useState<HTMLImageElement[]>([]);
-  const { loading } = useOpenCv();
+
+  const { loading: loadingDiabete } = useAsync(
+    () => diabeteClassifier.load(),
+    true
+  );
+  const { loading: loadingEyeDetector, load: loadEyeDetector } = useAsync(() =>
+    eyeDetector.load()
+  );
+
+  const { loading: LoadingOpencv } = useOpenCv();
   useEffect(() => {
-    if (!loading) {
+    if (!LoadingOpencv) {
       return;
     }
-    eyeDetector.load();
-    diabeteClassfier.load();
-  }, [loading]);
-  const onChangeHandler = async (e: ChangeEvent<HTMLInputElement>) => {
-    const img = await loadImageFile(e);
-    const eye = await eyeDetector.infer(img);
-    if (eye) {
-      await diabeteClassfier.infer(eye);
-    }
+    loadEyeDetector();
+  }, [LoadingOpencv]);
 
-    setImages(() => {
-      const i = [img];
-      if (eye) i.push(eye);
-      return i;
-    });
-  };
+  const onChangeHandler = useCallback(
+    async (e: ChangeEvent<HTMLInputElement>) => {
+      const img = await loadImageFile(e);
+      console.log(eyeDetector);
+
+      const eye = await eyeDetector.infer(img);
+      if (eye) {
+        await diabeteClassifier.infer(eye);
+      }
+
+      setImages(() => {
+        const i = [img];
+        if (eye) i.push(eye);
+        return i;
+      });
+    },
+    [loadingEyeDetector]
+  );
   return (
     <>
       <div>
@@ -45,6 +60,20 @@ function App() {
       </div>
       <h1>Vite + React</h1>
       <div className="card">
+        <div>
+          {loadingDiabete ? (
+            <>Loading diabete classifier</>
+          ) : (
+            <>Diabete classifier ready</>
+          )}
+        </div>
+        <div>
+          {loadingEyeDetector ? (
+            <>Loading eye detector</>
+          ) : (
+            <>Eye detector ready</>
+          )}
+        </div>
         <input type="file" onChange={onChangeHandler}></input>
         {images.map((image, index) => (
           <Fragment key={index}>
