@@ -6,9 +6,11 @@ import "./App.css";
 import { IrisDetector } from "./core/IrisDetector";
 import { useOpenCv } from "./core/hooks/useOpenCv";
 import { loadImageFile } from "./core/utils/loadImage";
+import { DiabeteClassfier } from "./core/DiabeteClassifier";
 
 function App() {
   const [eyeDetector] = useState(new IrisDetector());
+  const [diabeteClassfier] = useState(new DiabeteClassfier());
   const [images, setImages] = useState<HTMLImageElement[]>([]);
   const { loading } = useOpenCv();
   useEffect(() => {
@@ -16,10 +18,14 @@ function App() {
       return;
     }
     eyeDetector.load();
+    diabeteClassfier.load();
   }, [loading]);
   const onChangeHandler = async (e: ChangeEvent<HTMLInputElement>) => {
     const img = await loadImageFile(e);
     const eye = await eyeDetector.infer(img);
+    if (eye) {
+      await diabeteClassfier.infer(eye);
+    }
 
     setImages(() => {
       const i = [img];
