@@ -24,7 +24,7 @@ export class IrisDetector implements IrisExtractor {
     const gray = new cv.Mat();
     cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY, 0);
     const eyes = new cv.RectVector();
-    const msize = new cv.Size(120, 120); // Minimum size of detected eyes
+    const msize = new cv.Size(20, 20); // Minimum size of detected eyes
     // Detect eyes in the image
     this.model.detectMultiScale(gray, eyes, 1.1, 3, 0, msize);
     if (eyes.size() > 0) {

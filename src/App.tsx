@@ -8,10 +8,13 @@ import { useOpenCv } from "./core/hooks/useOpenCv";
 import { loadImageFile } from "./core/utils/loadImage";
 import { DiabeteClassifier } from "./core/DiabeteClassifier";
 import { useAsync } from "./core/hooks/useAsync";
+import { IrideAgent } from "./core/IridologyAgent";
 
 function App() {
   const [eyeDetector] = useState(new IrisDetector());
   const [diabeteClassifier] = useState(new DiabeteClassifier());
+  const [irideAgent] = useState(new IrideAgent());
+
   const [images, setImages] = useState<HTMLImageElement[]>([]);
 
   const { loading: loadingDiabete } = useAsync(
@@ -33,11 +36,12 @@ function App() {
   const onChangeHandler = useCallback(
     async (e: ChangeEvent<HTMLInputElement>) => {
       const img = await loadImageFile(e);
-      console.log(eyeDetector);
-
       const eye = await eyeDetector.infer(img);
       if (eye) {
-        await diabeteClassifier.infer(eye);
+        const classification = await diabeteClassifier.infer(eye);
+        console.log(classification);
+        const result = await irideAgent.infer(img);
+        console.log(result);
       }
 
       setImages(() => {

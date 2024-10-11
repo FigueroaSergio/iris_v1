@@ -32,3 +32,9 @@ export const createCanvas = () => {
   const canvas = document.createElement("canvas");
   return canvas;
 };
+
+export const canvas2Buffer = (canvas: HTMLCanvasElement): Promise<string> => {
+  return new Promise((resolve) => {
+    resolve(canvas.toDataURL());
+  });
+};

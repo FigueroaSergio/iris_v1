@@ -7,8 +7,16 @@ export async function loadCascade(cvFilePath: string, url: string) {
     )
     .then((arrayBuffer) => {
       const data = new Uint8Array(arrayBuffer);
-
-      cv.FS_createDataFile("/", cvFilePath, data, true, false, false);
-      return Promise.resolve();
+      try {
+        cv.FS_createDataFile("/", cvFilePath, data, true, false, false);
+        return Promise.resolve();
+      } catch (e) {
+        if (e instanceof Error) {
+          if (e.message === "FS error") {
+            return Promise.resolve();
+          }
+        }
+        throw e;
+      }
     });
 }
