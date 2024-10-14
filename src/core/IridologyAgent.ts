@@ -7,6 +7,8 @@ export class IrideAgent implements IrisAgent {
   genAI: GoogleGenerativeAI;
 
   constructor() {
+    console.log(import.meta.env.VITE_GEMINI_API_KEY);
+
     this.genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
     this.model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
   }

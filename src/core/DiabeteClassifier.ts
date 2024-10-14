@@ -1,5 +1,9 @@
 import { GraphModel, loadGraphModel, Rank, Tensor } from "@tensorflow/tfjs";
-import { IrisClassifier, ModelLoadError } from "./model/IrisModel";
+import {
+  IrisClassifier,
+  IrisClassifierInference,
+  ModelLoadError,
+} from "./model/IrisModel";
 import { rescaleCanvasImage } from "./utils/imageTensor";
 import { image2Canvas } from "./utils/canvas";
 
@@ -11,7 +15,7 @@ export class DiabeteClassifier implements IrisClassifier {
   onReady(cb: () => void): void {
     cb();
   }
-  async infer(img: HTMLImageElement) {
+  async infer(img: HTMLImageElement): Promise<IrisClassifierInference> {
     if (!this.model) {
       throw new ModelLoadError();
     }

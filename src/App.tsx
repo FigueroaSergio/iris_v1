@@ -9,13 +9,14 @@ import { loadImageFile } from "./core/utils/loadImage";
 import { DiabeteClassifier } from "./core/DiabeteClassifier";
 import { useAsync } from "./core/hooks/useAsync";
 import { IrideAgent } from "./core/IridologyAgent";
+import { eye } from "@tensorflow/tfjs";
 
 function App() {
   const [eyeDetector] = useState(new IrisDetector());
   const [diabeteClassifier] = useState(new DiabeteClassifier());
   const [irideAgent] = useState(new IrideAgent());
 
-  const [images, setImages] = useState<HTMLImageElement[]>([]);
+  const [image, setImage] = useState<HTMLImageElement | null>(null);
 
   const { loading: loadingDiabete } = useAsync(
     () => diabeteClassifier.load(),
@@ -24,6 +25,14 @@ function App() {
   const { loading: loadingEyeDetector, load: loadEyeDetector } = useAsync(() =>
     eyeDetector.load()
   );
+  const inferClasses = () => {
+    if (!image) {
+      return Promise.resolve(null);
+    }
+    return diabeteClassifier.infer(image);
+  };
+  const { loading: loadingInferencesClasses, load: infer } =
+    useAsync(inferClasses);
 
   const { loading: LoadingOpencv } = useOpenCv();
   useEffect(() => {
@@ -44,25 +53,14 @@ function App() {
         console.log(result);
       }
 
-      setImages(() => {
-        const i = [img];
-        if (eye) i.push(eye);
-        return i;
+      setImage(() => {
+        return img;
       });
     },
     [loadingEyeDetector]
   );
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
       <div className="card">
         <div>
           {loadingDiabete ? (
@@ -79,15 +77,8 @@ function App() {
           )}
         </div>
         <input type="file" onChange={onChangeHandler}></input>
-        {images.map((image, index) => (
-          <Fragment key={index}>
-            <img src={image.src} />
-          </Fragment>
-        ))}
+        {image && <img src={image.src} />}
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
   );
 }
