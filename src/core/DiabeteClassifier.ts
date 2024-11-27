@@ -10,7 +10,10 @@ import { image2Canvas } from "./utils/canvas";
 export class DiabeteClassifier implements IrisClassifier {
   model: GraphModel | null = null;
   async load(): Promise<void> {
-    this.model = await loadGraphModel("./../../public/result/model.json");
+    const url = `${import.meta.env.BASE_URL}${
+      import.meta.env.DEV ? "/public" : ""
+    }/result/model.json`;
+    this.model = await loadGraphModel(url);
   }
   onReady(cb: () => void): void {
     cb();

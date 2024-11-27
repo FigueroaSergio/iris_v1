@@ -1,4 +1,4 @@
-import { ChangeEvent, useCallback, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 
 import "./App.css";
 import { IrisDetector } from "./core/IrisDetector";

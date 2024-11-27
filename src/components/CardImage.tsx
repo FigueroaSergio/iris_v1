@@ -16,7 +16,7 @@ export const CardImage = ({
 }: {
   src: string | null;
   onChange: (e: ChangeEvent<HTMLInputElement>) => void | Promise<void>;
-  onDelete: (e: MouseEventHandler<HTMLButtonElement>) => void | Promise<void>;
+  onDelete: MouseEventHandler<HTMLButtonElement>;
 }) => {
   const inputFile = useRef<HTMLInputElement>(null);
   const handlerFile = () => {
