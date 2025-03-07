@@ -8,6 +8,7 @@ import {
 } from "./ui/card";
 import { ChangeEvent, MouseEventHandler, useRef } from "react";
 import { Button } from "./ui/button";
+import irisImage from "/iridology_64.png";
 
 export const CardImage = ({
   src,
@@ -25,7 +26,10 @@ export const CardImage = ({
   return (
     <Card className="overflow-hidden" x-chunk="dashboard-07-chunk-4">
       <CardHeader>
-        <CardTitle>Iris check</CardTitle>
+        <CardTitle>
+          <img src={irisImage} className="inline ratio-square w-6 mr-2"></img>
+          Iris check
+        </CardTitle>
         <CardDescription>Seleziona una imagine iride</CardDescription>
       </CardHeader>
       <CardContent>
