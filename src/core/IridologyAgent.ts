@@ -1,6 +1,6 @@
 import { GenerativeModel, GoogleGenerativeAI } from "@google/generative-ai";
 import { IrisAgent } from "./model/IrisModel";
-import { canvas2Buffer, image2Canvas } from "./utils/canvas";
+import { canvas2Buffer, image2Canvas } from "./utils/Canvas";
 
 export class IrideAgent implements IrisAgent {
   model: GenerativeModel;

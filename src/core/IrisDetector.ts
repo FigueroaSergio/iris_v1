@@ -1,7 +1,7 @@
 import cv from "@techstark/opencv-js";
 import { IrisExtractor, ModelLoadError } from "./model/IrisModel";
 import { loadCascade } from "./utils/loadCascade";
-import { canvas2Image, createCanvas } from "./utils/canvas";
+import { canvas2Image, createCanvas } from "./utils/Canvas";
 
 export class IrisDetector implements IrisExtractor {
   model: cv.CascadeClassifier | null = null;

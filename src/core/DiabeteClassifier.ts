@@ -5,7 +5,7 @@ import {
   ModelLoadError,
 } from "./model/IrisModel";
 import { rescaleCanvasImage } from "./utils/imageTensor";
-import { image2Canvas } from "./utils/canvas";
+import { image2Canvas } from "./utils/Canvas";
 
 export class DiabeteClassifier implements IrisClassifier {
   model: GraphModel | null = null;
